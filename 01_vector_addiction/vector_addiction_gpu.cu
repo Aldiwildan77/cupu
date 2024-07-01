@@ -54,19 +54,20 @@ int main(int argc, char const *argv[])
   fill_array(a);
   fill_array(b);
 
-  cudaMalloc((void **)&d_a, static_cast<size_t>(N * sizeof(int)));
-  cudaMalloc((void **)&d_b, static_cast<size_t>(N * sizeof(int)));
-  cudaMalloc((void **)&d_c, static_cast<size_t>(N * sizeof(int)));
+  cudaMalloc((void **)&d_a, size);
+  cudaMalloc((void **)&d_b, size);
+  cudaMalloc((void **)&d_c, size);
 
-  cudaMemcpy(d_a, a, N * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_b, b, N * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_a, a, size, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_b, b, size, cudaMemcpyHostToDevice);
 
   // 1 block 1 thread
   // d_c = d_a + d_b
-  device_add<<<1, 1>>>(d_a, d_b, d_c);
+  // N stand for number of blocks so the d_c will be N size and filled with the result of d_a + d_b
+  device_add<<<N, 1>>>(d_a, d_b, d_c);
 
   // send d_c to host (c)
-  cudaMemcpy(c, d_c, N * sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(c, d_c, size, cudaMemcpyDeviceToHost);
 
   print_output(a, b, c);
 
@@ -79,8 +80,6 @@ int main(int argc, char const *argv[])
   cudaFree(d_a);
   cudaFree(d_b);
   cudaFree(d_c);
-
-  // TODO: search why the result is 0
 
   return 0;
 }
